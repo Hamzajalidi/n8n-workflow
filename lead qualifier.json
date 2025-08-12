@@ -1,0 +1,207 @@
+{
+  "name": "lead qualifier",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        40
+      ],
+      "id": "372c1fa5-a793-451f-9e06-795826365857",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      name: \"Jordan Lee\",\n      transcript: \"Hi, I'm looking to place a large order of custom mugs for an upcoming corporate event. Probably around 300 units.\"\n    }\n  },\n  {\n    json: {\n      name: \"Alex Chen\",\n      transcript: \"Do you sell just one of these backpacks? I’m shopping for my daughter.\"\n    }\n  },\n  {\n    json: {\n      name: \"Samira Patel\",\n      transcript: \"We’re exploring gifts for our team and might want to add a logo. What's your bulk pricing on notebooks?\"\n    }\n  },\n  {\n    json: {\n      name: \"Marcus Grant\",\n      transcript: \"Just checking shipping times for a single product before I order. Thanks.\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        40
+      ],
+      "id": "f14297ff-54c6-427e-9ac8-764450b890ac",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{$json[\"name\"]}}\nTranscript: {{$json[\"transcript\"]}}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a lead qualification assistant for an ecommerce store. Your job is to determine if a customer from a phone call is a good lead for a **bulk order**.\n\nIf they mention:\n- large quantities\n- logos\n- team gifts\n- events\n- wholesale\n- or any indication of buying in bulk\n\nThen classify them as a **good lead**. Otherwise, mark them as not a good lead.\n\nRespond only in valid JSON with:\n- \"Name\": customer’s name\n- \"Is Good Lead\": Yes or No\n- \"Reasoning\": short one-sentence reason"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        480,
+        40
+      ],
+      "id": "65db8d12-c0fa-4198-80c9-562bd7e26288",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Name\": \"Alex Chen\",\n  \"Is Good Lead\": \"No\",\n  \"Reasoning\": \"The customer is interested in buying a single item for personal use.\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        260
+      ],
+      "id": "dedb6601-97e3-4e2a-83ef-fb2c57b88c34",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "948759d1-4c0c-4751-a83d-9daa1ec3bb1c",
+              "name": "Name",
+              "value": "={{$json[\"output\"][\"Name\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "91dbdf7b-8f0d-4ae2-ab36-701b01b581e2",
+              "name": "Good Lead",
+              "value": "={{$json[\"output\"][\"Is Good Lead\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "5d38cd05-eb1a-4734-83d2-cdd5ee973ea7",
+              "name": "Reasoning",
+              "value": "={{ $json.output.Reasoning }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        840,
+        40
+      ],
+      "id": "3e853eaa-7c64-4c60-825c-db0496f01af3",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "## Lead Qualifier Agent\n",
+        "height": 500,
+        "width": 1300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -100
+      ],
+      "id": "6a4afd4c-aeb0-4ce0-b93f-9525e71dbded",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ],
+      "id": "a62c8e8e-8018-49fe-8f6b-031b6fe5a5c4",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "ddhdcUrih29aDY63",
+          "name": "Groq account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9e9612c8-bc7b-469f-a32f-432deb45ccf7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41ee81518ba41e7f4c96145ccf649cc7b4f5430a757c91e53f5577107c9853ad"
+  },
+  "id": "UsYHSRVf5OHOGdaP",
+  "tags": [
+    {
+      "name": "project coumplet",
+      "id": "a6BWT6nIFDCtCGWh",
+      "createdAt": "2025-08-12T19:44:08.075Z",
+      "updatedAt": "2025-08-12T19:44:08.075Z"
+    }
+  ]
+}
